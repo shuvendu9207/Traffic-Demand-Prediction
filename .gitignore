@@ -35,3 +35,8 @@ optuna_studies/
 
 # Prompt
 prompt.json
+
+# Environment and logs
+.venv/
+.venv*/
+catboost_info/

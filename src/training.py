@@ -19,7 +19,7 @@ def get_feature_columns(train, schema):
     exclude = {target, id_col}
     # Exclude raw string columns
     cols = [c for c in train.columns if c not in exclude
-            and train[c].dtype != 'object']
+            and not pd.api.types.is_string_dtype(train[c].dtype)]
     return cols
 
 

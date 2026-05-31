@@ -14,7 +14,7 @@ def frequency_encoding(train, test, cols):
         if col not in train.columns:
             continue
         freq = train[col].value_counts(normalize=True)
-        train[f'{col}_freq'] = train[col].map(freq).astype(np.float32)
+        train[f'{col}_freq'] = train[col].map(freq).fillna(0).astype(np.float32)
         test[f'{col}_freq'] = test[col].map(freq).fillna(0).astype(np.float32)
     return train, test
 
@@ -25,7 +25,7 @@ def count_encoding(train, test, cols):
         if col not in train.columns:
             continue
         cnt = train[col].value_counts()
-        train[f'{col}_count'] = train[col].map(cnt).astype(np.int32)
+        train[f'{col}_count'] = train[col].map(cnt).fillna(0).astype(np.int32)
         test[f'{col}_count'] = test[col].map(cnt).fillna(0).astype(np.int32)
     return train, test
 
@@ -70,7 +70,7 @@ def apply_encodings(train, test, schema):
     encode_cols = cat_cols + geo_cols
 
     # Also encode string interaction features
-    str_interact = [c for c in train.columns if train[c].dtype == 'object'
+    str_interact = [c for c in train.columns if pd.api.types.is_string_dtype(train[c].dtype)
                     and c != target and c not in encode_cols]
     all_encode = encode_cols + str_interact
 

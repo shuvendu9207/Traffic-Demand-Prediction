@@ -25,6 +25,7 @@ class Config:
     TARGET_SCORE = 0.995
     OPTUNA_TRIALS = 50
     SUBMISSION_COLUMNS = ["Index", "demand"]
+    SUBMISSION_FILENAME = "submission.csv"
     USE_GPU = True
 
     @classmethod
@@ -86,7 +87,7 @@ def detect_schema(train, test):
             schema['geohash'].append(col)
         elif col.lower() in ['timestamp','datetime','date','time']:
             schema['datetime'].append(col)
-        elif train[col].dtype == 'object':
+        elif pd.api.types.is_string_dtype(train[col].dtype):
             try:
                 pd.to_datetime(train[col].head(50)); schema['datetime'].append(col)
             except:
@@ -137,7 +138,8 @@ def clean_data(train, test, schema):
             test['Temperature'] = test.apply(lambda r: gmd.get(r[geo_col], gfill) if pd.isna(r['Temperature']) else r['Temperature'], axis=1)
         else:
             v = train['Temperature'].median()
-            train['Temperature'].fillna(v, inplace=True); test['Temperature'].fillna(v, inplace=True)
+            train['Temperature'] = train['Temperature'].fillna(v)
+            test['Temperature'] = test['Temperature'].fillna(v)
     if 'Weather' in train.columns:
         if geo_col:
             mm = train.groupby(geo_col)['Weather'].agg(lambda x: x.mode().iloc[0] if len(x.mode())>0 else 'Unknown')
@@ -146,19 +148,21 @@ def clean_data(train, test, schema):
             test['Weather'] = test.apply(lambda r: mmd.get(r[geo_col],'Unknown') if pd.isna(r['Weather']) else r['Weather'], axis=1)
         else:
             v = train['Weather'].mode()[0] if len(train['Weather'].mode())>0 else 'Unknown'
-            train['Weather'].fillna(v, inplace=True); test['Weather'].fillna(v, inplace=True)
+            train['Weather'] = train['Weather'].fillna(v)
+            test['Weather'] = test['Weather'].fillna(v)
     if 'RoadType' in train.columns:
-        train['RoadType'].fillna('Unknown', inplace=True); test['RoadType'].fillna('Unknown', inplace=True)
+        train['RoadType'] = train['RoadType'].fillna('Unknown')
+        test['RoadType'] = test['RoadType'].fillna('Unknown')
     for col in train.columns:
         if train[col].isnull().sum() > 0:
-            if train[col].dtype == 'object':
+            if pd.api.types.is_string_dtype(train[col].dtype):
                 v = train[col].mode()[0] if len(train[col].mode())>0 else 'Unknown'
             else: v = train[col].median()
-            train[col].fillna(v, inplace=True)
-            if col in test.columns: test[col].fillna(v, inplace=True)
+            train[col] = train[col].fillna(v)
+            if col in test.columns: test[col] = test[col].fillna(v)
     for col in test.columns:
         if test[col].isnull().sum() > 0:
-            test[col].fillna(test[col].median() if test[col].dtype != 'object' else 'Unknown', inplace=True)
+            test[col] = test[col].fillna(test[col].median() if not pd.api.types.is_string_dtype(test[col].dtype) else 'Unknown')
     for col in schema['categorical']:
         if col in train.columns: train[col] = train[col].astype(str).str.strip().str.lower()
         if col in test.columns: test[col] = test[col].astype(str).str.strip().str.lower()

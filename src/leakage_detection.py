@@ -32,8 +32,8 @@ def detect_leakage(train, test, schema):
     print("-" * 40)
     common_cols = [c for c in train.columns if c in test.columns and c != id_col]
     if common_cols:
-        train_keys = train[common_cols].astype(str).apply('|'.join, axis=1)
-        test_keys = test[common_cols].astype(str).apply('|'.join, axis=1)
+        train_keys = train[common_cols].astype(str).fillna('nan').apply('|'.join, axis=1)
+        test_keys = test[common_cols].astype(str).fillna('nan').apply('|'.join, axis=1)
         overlap = set(train_keys) & set(test_keys)
         pct = len(overlap) / len(test_keys) * 100
         msg = f"  Overlap: {len(overlap)} unique rows ({pct:.2f}% of test)"

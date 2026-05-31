@@ -9,7 +9,7 @@ import pandas as pd
 def _safe_geohash_decode(gh):
     """Decode geohash to (lat, lon). Returns (NaN, NaN) on failure."""
     try:
-        import geohash as gh_lib
+        import pygeohash as gh_lib
         lat, lon = gh_lib.decode(gh)
         return float(lat), float(lon)
     except Exception:
