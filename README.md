@@ -1,4 +1,4 @@
-# TrafficDemandElite995
+# Traffic Demand Prediction
 
 **Competition-grade Traffic Demand Prediction** — targeting R² ≥ 0.995
 
