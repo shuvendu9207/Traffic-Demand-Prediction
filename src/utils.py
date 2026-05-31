@@ -181,8 +181,8 @@ class Timer:
 
 def reduce_mem_usage(df):
     for col in df.columns:
-        t = df[col].dtype
-        if t != object and t.name != 'category':
+        if pd.api.types.is_numeric_dtype(df[col].dtype):
+            t = df[col].dtype
             mi, ma = df[col].min(), df[col].max()
             if str(t)[:3] == 'int':
                 for dt in [np.int8, np.int16, np.int32]:
