@@ -27,7 +27,7 @@ def _catboost_params(trial=None, use_gpu=True):
     """CatBoost parameters, optionally from Optuna trial."""
     base = {
         'loss_function': 'RMSE',
-        'eval_metric': 'R2',
+        'eval_metric': 'RMSE',
         'random_seed': 42,
         'verbose': 0,
         'allow_writing_files': False,
@@ -229,7 +229,7 @@ def build_best_catboost_params(best_trial_params, use_gpu=True):
     """Convert Optuna best params to CatBoost param dict."""
     params = {
         'loss_function': 'RMSE',
-        'eval_metric': 'R2',
+        'eval_metric': 'RMSE',
         'random_seed': 42,
         'verbose': 0,
         'allow_writing_files': False,
