@@ -41,14 +41,15 @@ def _catboost_params(trial=None, use_gpu=True):
         base['depth'] = trial.suggest_int('cb_depth', 4, 10)
         base['iterations'] = trial.suggest_int('cb_iters', 500, 5000, step=100)
         base['l2_leaf_reg'] = trial.suggest_float('cb_l2', 1.0, 10.0)
+        base['bootstrap_type'] = 'Bernoulli'
         base['subsample'] = trial.suggest_float('cb_subsample', 0.6, 1.0)
         base['min_data_in_leaf'] = trial.suggest_int('cb_min_leaf', 1, 50)
-        base['bagging_temperature'] = trial.suggest_float('cb_bag_temp', 0.0, 1.0)
     else:
         base['learning_rate'] = 0.05
         base['depth'] = 8
         base['iterations'] = 3000
         base['l2_leaf_reg'] = 3.0
+        base['bootstrap_type'] = 'Bernoulli'
         base['subsample'] = 0.8
         base['min_data_in_leaf'] = 5
     return base
@@ -236,9 +237,9 @@ def build_best_catboost_params(best_trial_params, use_gpu=True):
         'depth': best_trial_params.get('cb_depth', 8),
         'iterations': best_trial_params.get('cb_iters', 3000),
         'l2_leaf_reg': best_trial_params.get('cb_l2', 3.0),
+        'bootstrap_type': 'Bernoulli',
         'subsample': best_trial_params.get('cb_subsample', 0.8),
         'min_data_in_leaf': best_trial_params.get('cb_min_leaf', 5),
-        'bagging_temperature': best_trial_params.get('cb_bag_temp', 0.5),
     }
     if use_gpu:
         params['task_type'] = 'GPU'
