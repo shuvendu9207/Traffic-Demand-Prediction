@@ -1,6 +1,6 @@
 """
-TrafficDemandElite995 - Encoding
-=================================
+Traffic Demand Prediction - Encoding
+====================================
 Frequency, count, and K-Fold target encoding (leakage-safe).
 """
 import numpy as np

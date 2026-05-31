@@ -1,6 +1,6 @@
 """
-TrafficDemandElite995 - Leakage Detection
-==========================================
+Traffic Demand Prediction - Leakage Detection
+=============================================
 Comprehensive leakage analysis for competition datasets.
 """
 import numpy as np

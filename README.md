@@ -12,17 +12,17 @@ pip install -r requirements.txt
    data/train.csv
    data/test.csv
    ```
-2. Open and run `notebooks/TrafficDemandElite995.ipynb` top-to-bottom.
+2. Open and run `notebooks/Traffic_Demand_Prediction.ipynb` top-to-bottom.
 
 ## Project Structure
 
 ```
-TrafficDemandElite995/
+Traffic_Demand_Prediction/
 ├── data/
 │   ├── train.csv          # Training data (add manually)
 │   └── test.csv           # Test data (add manually)
 ├── notebooks/
-│   └── TrafficDemandElite995.ipynb
+│   └── Traffic_Demand_Prediction.ipynb
 ├── src/
 │   ├── utils.py           # Config, validation, EDA, cleaning
 │   ├── feature_engineering.py

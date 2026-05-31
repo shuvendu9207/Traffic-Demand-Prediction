@@ -1,6 +1,6 @@
 """
-TrafficDemandElite995 - Utility Functions
-==========================================
+Traffic Demand Prediction - Utility Functions
+=============================================
 """
 import os, sys, time, warnings
 import numpy as np
@@ -35,7 +35,7 @@ class Config:
     @classmethod
     def display(cls):
         print("=" * 70)
-        print("  TrafficDemandElite995 - Configuration")
+        print("  Traffic Demand Prediction - Configuration")
         print("=" * 70)
         for k in ['PROJECT_ROOT','TRAIN_FILE','TEST_FILE','N_FOLDS','RANDOM_STATE','PRIMARY_METRIC','TARGET_SCORE','OPTUNA_TRIALS','USE_GPU']:
             print(f"  {k:20s}: {getattr(cls, k)}")
