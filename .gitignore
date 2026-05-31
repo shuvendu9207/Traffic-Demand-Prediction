@@ -35,8 +35,3 @@ optuna_studies/
 
 # Prompt
 prompt.json
-
-# Offline libs and environment
-lib/
-venv/
-
