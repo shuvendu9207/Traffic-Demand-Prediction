@@ -1,0 +1,37 @@
+# Data
+data/*.csv
+data/*.parquet
+
+# Outputs
+outputs/models/*.cbm
+outputs/models/*.txt
+outputs/models/*.json
+outputs/predictions/*.csv
+outputs/submissions/*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Optuna
+*.db
+optuna_studies/
+
+# Prompt
+prompt.json
