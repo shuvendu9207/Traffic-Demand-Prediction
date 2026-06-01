@@ -95,6 +95,7 @@ def _lgbm_params(trial=None, use_gpu=True):
 def train_catboost_cv(X, y, feature_cols, n_folds=5, params=None, use_gpu=True):
     """Train CatBoost with KFold CV, return OOF predictions and models."""
     from catboost import CatBoostRegressor, Pool
+    from tqdm.auto import tqdm
 
     if params is None:
         params = _catboost_params(use_gpu=use_gpu)
@@ -104,7 +105,7 @@ def train_catboost_cv(X, y, feature_cols, n_folds=5, params=None, use_gpu=True):
     models = []
     scores = []
 
-    for fold, (tr_idx, val_idx) in enumerate(kf.split(X)):
+    for fold, (tr_idx, val_idx) in enumerate(tqdm(kf.split(X), desc=f"CatBoost {n_folds}-Fold CV")):
         X_tr, X_val = X.iloc[tr_idx][feature_cols], X.iloc[val_idx][feature_cols]
         y_tr, y_val = y.iloc[tr_idx], y.iloc[val_idx]
 
@@ -125,6 +126,9 @@ def train_catboost_cv(X, y, feature_cols, n_folds=5, params=None, use_gpu=True):
 def train_lgbm_cv(X, y, feature_cols, n_folds=5, params=None, use_gpu=True):
     """Train LightGBM with KFold CV, return OOF predictions and models."""
     import lightgbm as lgb
+    import warnings
+    warnings.filterwarnings('ignore')
+    from tqdm.auto import tqdm
 
     if params is None:
         params = _lgbm_params(use_gpu=use_gpu)
@@ -136,14 +140,14 @@ def train_lgbm_cv(X, y, feature_cols, n_folds=5, params=None, use_gpu=True):
 
     n_est = params.pop('n_estimators', 3000)
 
-    for fold, (tr_idx, val_idx) in enumerate(kf.split(X)):
+    for fold, (tr_idx, val_idx) in enumerate(tqdm(kf.split(X), desc=f"LightGBM {n_folds}-Fold CV")):
         X_tr, X_val = X.iloc[tr_idx][feature_cols], X.iloc[val_idx][feature_cols]
         y_tr, y_val = y.iloc[tr_idx], y.iloc[val_idx]
 
         dtrain = lgb.Dataset(X_tr, label=y_tr)
         dval = lgb.Dataset(X_val, label=y_val)
 
-        callbacks = [lgb.early_stopping(100), lgb.log_evaluation(0)]
+        callbacks = [lgb.early_stopping(100, verbose=False), lgb.log_evaluation(0)]
         model = lgb.train(params, dtrain, num_boost_round=n_est,
                           valid_sets=[dval], callbacks=callbacks)
         pred = model.predict(X_val)
@@ -181,7 +185,7 @@ def optuna_catboost(X, y, feature_cols, n_trials=50, n_folds=5, use_gpu=True):
 
     print(f"CatBoost HPO -> Tuning {n_trials} trials...")
     study = optuna.create_study(direction='maximize')
-    study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
     print(f"CatBoost HPO -> Best OOF R2: {study.best_value:.6f}")
     return study.best_params, study.best_value
 
@@ -203,7 +207,7 @@ def optuna_lgbm(X, y, feature_cols, n_trials=50, n_folds=5, use_gpu=True):
             y_tr, y_val = y.iloc[tr_idx], y.iloc[val_idx]
             dtrain = lgb.Dataset(X_tr, label=y_tr)
             dval = lgb.Dataset(X_val, label=y_val)
-            callbacks = [lgb.early_stopping(50), lgb.log_evaluation(0)]
+            callbacks = [lgb.early_stopping(50, verbose=False), lgb.log_evaluation(0)]
             model = lgb.train(params, dtrain, num_boost_round=n_est,
                               valid_sets=[dval], callbacks=callbacks)
             pred = model.predict(X_val)
@@ -212,7 +216,7 @@ def optuna_lgbm(X, y, feature_cols, n_trials=50, n_folds=5, use_gpu=True):
 
     print(f"LightGBM HPO -> Tuning {n_trials} trials...")
     study = optuna.create_study(direction='maximize')
-    study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
     print(f"LightGBM HPO -> Best OOF R2: {study.best_value:.6f}")
     return study.best_params, study.best_value
 
