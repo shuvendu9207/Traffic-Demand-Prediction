@@ -42,15 +42,8 @@ def _build_agg_features(train, test, group_cols, target_col, stats=None):
 
 
 def build_aggregation_features(train, test, schema):
-    """
-    Build all aggregation features per specification:
-    Groups: geohash, timestamp, geohash+timestamp, geohash+Weather, geohash+RoadType
-    Stats: mean, median, std, count
-    """
-    print("\n--- Aggregation Features ---")
     target = schema['target']
     if not target or target not in train.columns:
-        print("  No target column, skipping aggregation.")
         return train, test
 
     geo_cols = schema.get('geohash', [])
@@ -70,7 +63,6 @@ def build_aggregation_features(train, test, schema):
         groups.append([geo_col, 'Weather'])
     if geo_col and 'RoadType' in train.columns:
         groups.append([geo_col, 'RoadType'])
-    # Additional useful groups
     if 'hour' in train.columns and geo_col:
         groups.append([geo_col, 'hour'])
     if 'slot' in train.columns and geo_col:
@@ -81,17 +73,11 @@ def build_aggregation_features(train, test, schema):
         train, test = _build_agg_features(train, test, grp, target)
 
     after = train.shape[1]
-    print(f"  Created {after - before} aggregation features from {len(groups)} groups")
-    print(f"  Train: {train.shape}, Test: {test.shape}")
+    print(f"Aggregation Features -> Created {after - before} features from {len(groups)} groups | Final train shape: {train.shape}")
     return train, test
 
 
 def build_memorization_features(train, test, schema):
-    """
-    Build memorization features: direct lookup features for leakage exploitation.
-    These capture deterministic patterns in the data.
-    """
-    print("\n--- Memorization Features ---")
     target = schema['target']
     if not target:
         return train, test
@@ -103,29 +89,26 @@ def build_memorization_features(train, test, schema):
 
     created = 0
 
-    # mean_demand_by_geohash
     if geo_col:
         m = train.groupby(geo_col)[target].mean()
         train['mean_demand_by_geohash'] = train[geo_col].map(m)
         test['mean_demand_by_geohash'] = test[geo_col].map(m).fillna(m.mean())
         created += 1
 
-    # mean_demand_by_timestamp
     if dt_col:
         m = train.groupby(dt_col)[target].mean()
         train['mean_demand_by_timestamp'] = train[dt_col].map(m)
         test['mean_demand_by_timestamp'] = test[dt_col].map(m).fillna(m.mean())
         created += 1
 
-    # mean & median demand by geohash+timestamp
     if geo_col and dt_col:
         m = train.groupby([geo_col, dt_col])[target].mean().reset_index()
         m.columns = [geo_col, dt_col, 'mean_demand_by_geohash_timestamp']
         train = train.merge(m, on=[geo_col, dt_col], how='left')
         test = test.merge(m, on=[geo_col, dt_col], how='left')
         fill = train['mean_demand_by_geohash_timestamp'].median()
-        train['mean_demand_by_geohash_timestamp'].fillna(fill, inplace=True)
-        test['mean_demand_by_geohash_timestamp'].fillna(fill, inplace=True)
+        train['mean_demand_by_geohash_timestamp'] = train['mean_demand_by_geohash_timestamp'].fillna(fill)
+        test['mean_demand_by_geohash_timestamp'] = test['mean_demand_by_geohash_timestamp'].fillna(fill)
         created += 1
 
         md = train.groupby([geo_col, dt_col])[target].median().reset_index()
@@ -133,9 +116,9 @@ def build_memorization_features(train, test, schema):
         train = train.merge(md, on=[geo_col, dt_col], how='left')
         test = test.merge(md, on=[geo_col, dt_col], how='left')
         fill = train['median_demand_by_geohash_timestamp'].median()
-        train['median_demand_by_geohash_timestamp'].fillna(fill, inplace=True)
-        test['median_demand_by_geohash_timestamp'].fillna(fill, inplace=True)
+        train['median_demand_by_geohash_timestamp'] = train['median_demand_by_geohash_timestamp'].fillna(fill)
+        test['median_demand_by_geohash_timestamp'] = test['median_demand_by_geohash_timestamp'].fillna(fill)
         created += 1
 
-    print(f"  Created {created} memorization features")
+    print(f"Memorization Features -> Created {created} features | Final train shape: {train.shape}")
     return train, test

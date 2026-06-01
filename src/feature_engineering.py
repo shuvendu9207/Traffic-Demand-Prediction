@@ -69,8 +69,6 @@ def add_interaction_features(df):
     return df
 
 def engineer_features(train, test, schema):
-    """Main feature engineering pipeline."""
-    print("\n--- Feature Engineering ---")
     dt_cols = schema.get('datetime', [])
     geo_cols = schema.get('geohash', [])
 
@@ -81,6 +79,5 @@ def engineer_features(train, test, schema):
 
     new_cols = [c for c in train.columns if c not in schema.get('all_features', [])
                 and c != schema.get('target') and c != schema.get('id_column')]
-    print(f"  Created {len(new_cols)} new features: {new_cols[:15]}{'...' if len(new_cols)>15 else ''}")
-    print(f"  Train: {train.shape}, Test: {test.shape}")
+    print(f"Feature Engineering -> Created {len(new_cols)} features | Final train shape: {train.shape}")
     return train, test

@@ -34,41 +34,23 @@ class Config:
             d.mkdir(parents=True, exist_ok=True)
 
     @classmethod
-    def display(cls):
-        print("=" * 70)
-        print("  Traffic Demand Prediction - Configuration")
-        print("=" * 70)
-        for k in ['PROJECT_ROOT','TRAIN_FILE','TEST_FILE','N_FOLDS','RANDOM_STATE','PRIMARY_METRIC','TARGET_SCORE','OPTUNA_TRIALS','USE_GPU']:
-            print(f"  {k:20s}: {getattr(cls, k)}")
-        print("=" * 70)
+    def show_config(cls):
+        print(f"Configuration -> N_Folds: {cls.N_FOLDS} | Seed: {cls.RANDOM_STATE} | GPU: {cls.USE_GPU}")
 
 def validate_datasets():
-    print("\n--- Dataset Validation ---")
-    errors = []
     for name, path in [("Train", Config.TRAIN_FILE), ("Test", Config.TEST_FILE)]:
         if not path.exists():
-            errors.append(f"  {name} file not found: {path}")
+            raise FileNotFoundError(f"Missing file: {path}")
         elif path.stat().st_size == 0:
-            errors.append(f"  {name} file is empty: {path}")
-        else:
-            print(f"  OK {name}: {path} ({path.stat().st_size / 1024**2:.2f} MB)")
-    if errors:
-        print("\n  DATASET VALIDATION FAILED")
-        for e in errors: print(e)
-        print("\n  Expected structure:\n  data/train.csv\n  data/test.csv")
-        raise FileNotFoundError("Required datasets missing.")
-    print("  All datasets validated.\n")
+            raise ValueError(f"Empty file: {path}")
 
 def load_data():
-    print("\n--- Loading Datasets ---")
-    t0 = time.time()
     train = pd.read_csv(Config.TRAIN_FILE)
     test = pd.read_csv(Config.TEST_FILE)
-    print(f"  Train: {train.shape}, Test: {test.shape}, Time: {time.time()-t0:.2f}s")
+    print(f"Datasets loaded -> Train: {train.shape} | Test: {test.shape}")
     return train, test
 
 def detect_schema(train, test):
-    print("\n--- Schema Detection ---")
     schema = {'target': None, 'id_column': None, 'categorical': [], 'numerical': [],
               'datetime': [], 'geohash': [], 'all_features': []}
     train_only = set(train.columns) - set(test.columns)
@@ -99,20 +81,16 @@ def detect_schema(train, test):
         else:
             schema['numerical'].append(col)
     schema['all_features'] = feat_cols
-    print(f"  Target: {schema['target']}, ID: {schema['id_column']}")
-    print(f"  Cat: {len(schema['categorical'])}, Num: {len(schema['numerical'])}, "
-          f"DT: {len(schema['datetime'])}, Geo: {len(schema['geohash'])}")
+    print(f"Detected target: {schema['target']} | ID: {schema['id_column']}")
+    print(f"Features: {len(schema['numerical'])} numerical | {len(schema['categorical'])} categorical | {len(schema['datetime'])} datetime | {len(schema['geohash'])} geohash")
     return schema
 
 def run_eda(train, test, schema):
     import matplotlib.pyplot as plt
-    print("\n--- EDA ---")
     target = schema['target']
-    if target: print(train[target].describe())
-    miss = train.isnull().sum(); miss = miss[miss > 0]
-    if len(miss): print("Missing (train):"); print(miss)
-    else: print("  No missing values in train")
-    print(f"  Train duplicates: {train.duplicated().sum()}")
+    if target: 
+        print(f"Target stats:\n{train[target].describe()}")
+    print(f"Train duplicate rows: {train.duplicated().sum()}")
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
     if target:
         axes[0].hist(train[target], bins=50, color='#4CAF50', edgecolor='white')
@@ -123,10 +101,8 @@ def run_eda(train, test, schema):
     plt.tight_layout(); plt.show()
 
 def clean_data(train, test, schema):
-    print("\n--- Data Cleaning ---")
     target = schema['target']
     b = len(train); train = train.drop_duplicates().reset_index(drop=True)
-    print(f"  Removed {b - len(train)} duplicates")
     geo_cols = schema.get('geohash', [])
     geo_col = geo_cols[0] if geo_cols else None
     if 'Temperature' in train.columns:
@@ -168,16 +144,15 @@ def clean_data(train, test, schema):
         if col in test.columns: test[col] = test[col].astype(str).str.strip().str.lower()
     const = [c for c in train.columns if c != target and train[c].nunique() <= 1]
     if const:
-        print(f"  Removing constant: {const}")
         train.drop(columns=const, inplace=True)
         test.drop(columns=[c for c in const if c in test.columns], inplace=True)
-    print(f"  Done. Train: {train.shape}, Test: {test.shape}")
+    print(f"Data cleaning -> Removed {b - len(train)} duplicates | Final shape: {train.shape}")
     return train, test, schema
 
 class Timer:
     def __init__(self, name="Block"): self.name = name
     def __enter__(self): self.start = time.time(); return self
-    def __exit__(self, *a): print(f"  {self.name}: {time.time()-self.start:.2f}s")
+    def __exit__(self, *a): print(f"[{self.name}] Completed in {time.time()-self.start:.2f}s")
 
 def reduce_mem_usage(df):
     for col in df.columns:

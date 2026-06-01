@@ -25,12 +25,10 @@ def optimize_ensemble_weights(oof_preds_list, y_true, model_names=None):
     if model_names is None:
         model_names = [f'Model_{i}' for i in range(n_models)]
 
-    print(f"\n--- Ensemble Weight Optimization ({n_models} models) ---")
-
     # Individual model scores
-    for i, (name, oof) in enumerate(zip(model_names, oof_preds_list)):
+    for name, oof in zip(model_names, oof_preds_list):
         r2 = r2_score(y_true, oof)
-        print(f"  {name} OOF R2: {r2:.6f}")
+        print(f"{name} OOF R2: {r2:.6f}")
 
     # Grid search for 2 models (fast)
     if n_models == 2:
@@ -55,11 +53,8 @@ def optimize_ensemble_weights(oof_preds_list, y_true, model_names=None):
         best_weights = (raw / raw.sum()).tolist()
         best_r2 = -result.fun
 
-    # Display results
-    print(f"\n  Optimal Weights:")
-    for name, w in zip(model_names, best_weights):
-        print(f"    {name}: {w:.4f}")
-    print(f"  Ensemble R2: {best_r2:.6f}")
+    w_str = ", ".join(f"{name}: {w:.4f}" for name, w in zip(model_names, best_weights))
+    print(f"Optimal weights -> {w_str} | Ensemble OOF R2: {best_r2:.6f}")
 
     return best_weights, best_r2
 
@@ -77,7 +72,5 @@ def generate_submission(test_preds, test_df, id_col, target_col, output_path):
     sub = test_df[[id_col]].copy()
     sub[target_col] = test_preds
     sub.to_csv(output_path, index=False)
-    print(f"\n  Submission saved: {output_path}")
-    print(f"  Shape: {sub.shape}")
-    print(f"  Preview:\n{sub.head()}")
+    print(f"Submission saved to {output_path} | Shape: {sub.shape}")
     return sub

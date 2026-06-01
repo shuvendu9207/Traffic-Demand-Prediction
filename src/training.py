@@ -104,7 +104,6 @@ def train_catboost_cv(X, y, feature_cols, n_folds=5, params=None, use_gpu=True):
     models = []
     scores = []
 
-    print(f"\n  CatBoost {n_folds}-Fold CV")
     for fold, (tr_idx, val_idx) in enumerate(kf.split(X)):
         X_tr, X_val = X.iloc[tr_idx][feature_cols], X.iloc[val_idx][feature_cols]
         y_tr, y_val = y.iloc[tr_idx], y.iloc[val_idx]
@@ -114,14 +113,12 @@ def train_catboost_cv(X, y, feature_cols, n_folds=5, params=None, use_gpu=True):
         pred = model.predict(X_val)
         oof[val_idx] = pred
         r2 = r2_score(y_val, pred)
-        rmse = np.sqrt(mean_squared_error(y_val, pred))
         scores.append(r2)
         models.append(model)
-        print(f"    Fold {fold+1}: R2={r2:.6f}, RMSE={rmse:.6f}")
 
     mean_r2 = np.mean(scores)
     std_r2 = np.std(scores)
-    print(f"  Mean R2: {mean_r2:.6f} +/- {std_r2:.6f}")
+    print(f"CatBoost {n_folds}-Fold CV completed | Mean OOF R2: {mean_r2:.6f} +/- {std_r2:.6f}")
     return oof, models, scores
 
 
@@ -139,7 +136,6 @@ def train_lgbm_cv(X, y, feature_cols, n_folds=5, params=None, use_gpu=True):
 
     n_est = params.pop('n_estimators', 3000)
 
-    print(f"\n  LightGBM {n_folds}-Fold CV")
     for fold, (tr_idx, val_idx) in enumerate(kf.split(X)):
         X_tr, X_val = X.iloc[tr_idx][feature_cols], X.iloc[val_idx][feature_cols]
         y_tr, y_val = y.iloc[tr_idx], y.iloc[val_idx]
@@ -153,14 +149,12 @@ def train_lgbm_cv(X, y, feature_cols, n_folds=5, params=None, use_gpu=True):
         pred = model.predict(X_val)
         oof[val_idx] = pred
         r2 = r2_score(y_val, pred)
-        rmse = np.sqrt(mean_squared_error(y_val, pred))
         scores.append(r2)
         models.append(model)
-        print(f"    Fold {fold+1}: R2={r2:.6f}, RMSE={rmse:.6f}")
 
     mean_r2 = np.mean(scores)
     std_r2 = np.std(scores)
-    print(f"  Mean R2: {mean_r2:.6f} +/- {std_r2:.6f}")
+    print(f"LightGBM {n_folds}-Fold CV completed | Mean OOF R2: {mean_r2:.6f} +/- {std_r2:.6f}")
     return oof, models, scores
 
 
@@ -185,11 +179,10 @@ def optuna_catboost(X, y, feature_cols, n_trials=50, n_folds=5, use_gpu=True):
             scores.append(r2_score(y_val, pred))
         return np.mean(scores)
 
-    print(f"\n  Optuna CatBoost ({n_trials} trials)...")
+    print(f"CatBoost HPO -> Tuning {n_trials} trials...")
     study = optuna.create_study(direction='maximize')
-    study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
-    print(f"  Best R2: {study.best_value:.6f}")
-    print(f"  Best params: {study.best_params}")
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
+    print(f"CatBoost HPO -> Best OOF R2: {study.best_value:.6f}")
     return study.best_params, study.best_value
 
 
@@ -217,11 +210,10 @@ def optuna_lgbm(X, y, feature_cols, n_trials=50, n_folds=5, use_gpu=True):
             scores.append(r2_score(y_val, pred))
         return np.mean(scores)
 
-    print(f"\n  Optuna LightGBM ({n_trials} trials)...")
+    print(f"LightGBM HPO -> Tuning {n_trials} trials...")
     study = optuna.create_study(direction='maximize')
-    study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
-    print(f"  Best R2: {study.best_value:.6f}")
-    print(f"  Best params: {study.best_params}")
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
+    print(f"LightGBM HPO -> Best OOF R2: {study.best_value:.6f}")
     return study.best_params, study.best_value
 
 

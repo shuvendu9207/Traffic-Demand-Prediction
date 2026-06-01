@@ -1,0 +1,57 @@
+{
+  "catboost_cv_scores": [
+    0.9949813811102192,
+    0.9957106078659844,
+    0.9959995508150568,
+    0.9955323900288469,
+    0.9966250252144351
+  ],
+  "catboost_mean_r2": 0.9957697910069084,
+  "lightgbm_cv_scores": [
+    0.9930450451621382,
+    0.9944812432987618,
+    0.9916947924969076,
+    0.9925455228100991,
+    0.9929401914348348
+  ],
+  "lightgbm_mean_r2": 0.9929413590405483,
+  "ensemble_r2": 0.9963232332217752,
+  "ensemble_weights": [
+    0.71,
+    0.29000000000000004
+  ],
+  "catboost_best_params": {
+    "loss_function": "RMSE",
+    "eval_metric": "RMSE",
+    "random_seed": "42",
+    "verbose": "0",
+    "allow_writing_files": "False",
+    "learning_rate": "0.03431612397691606",
+    "depth": "9",
+    "iterations": "2600",
+    "l2_leaf_reg": "1.2913432683730948",
+    "bootstrap_type": "Bernoulli",
+    "subsample": "0.7623746324571553",
+    "min_data_in_leaf": "20",
+    "task_type": "GPU",
+    "devices": "0"
+  },
+  "lightgbm_best_params": {
+    "objective": "regression",
+    "metric": "rmse",
+    "verbosity": "-1",
+    "random_state": "42",
+    "n_jobs": "-1",
+    "learning_rate": "0.04060696514213658",
+    "num_leaves": "477",
+    "reg_alpha": "0.5432852251920453",
+    "reg_lambda": "3.2420396099085718",
+    "subsample": "0.7418072529277034",
+    "colsample_bytree": "0.5497482140134471",
+    "min_child_samples": "13",
+    "max_depth": "11",
+    "device": "gpu",
+    "gpu_platform_id": "0",
+    "gpu_device_id": "0"
+  }
+}

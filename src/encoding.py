@@ -62,8 +62,6 @@ def kfold_target_encoding(train, test, cols, target_col, n_folds=5, random_state
 
 
 def apply_encodings(train, test, schema):
-    """Apply all encoding methods."""
-    print("\n--- Encoding ---")
     target = schema['target']
     cat_cols = schema.get('categorical', [])
     geo_cols = schema.get('geohash', [])
@@ -75,22 +73,15 @@ def apply_encodings(train, test, schema):
     all_encode = encode_cols + str_interact
 
     if not all_encode:
-        print("  No categorical columns to encode.")
         return train, test
 
-    print(f"  Encoding {len(all_encode)} columns: {all_encode[:10]}")
-
     train, test = frequency_encoding(train, test, all_encode)
-    print("    Frequency encoding done")
     train, test = count_encoding(train, test, all_encode)
-    print("    Count encoding done")
 
     if target and target in train.columns:
-        # Target encoding only on categorical + geohash (most impactful)
         te_cols = [c for c in encode_cols if c in train.columns]
         if te_cols:
             train, test = kfold_target_encoding(train, test, te_cols, target)
-            print(f"    K-Fold target encoding done ({len(te_cols)} cols)")
 
-    print(f"  Train: {train.shape}, Test: {test.shape}")
+    print(f"Encoding -> Processed {len(all_encode)} categorical features | Final train shape: {train.shape}")
     return train, test
