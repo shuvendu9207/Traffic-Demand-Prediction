@@ -63,12 +63,6 @@ Traffic_Demand_Prediction/
 | 17 | Feature Importance | Combined CatBoost + LightGBM feature ranking |
 | 18 | Submission | Generate submission.csv |
 
-## Hardware
-
-Optimized for:
-- **CPU**: Intel Core 7 240H
-- **GPU**: NVIDIA RTX 5050
-- **RAM**: 24 GB
 
 ## Expected Runtime
 
